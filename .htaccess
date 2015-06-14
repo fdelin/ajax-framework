@@ -3,14 +3,26 @@
 <IfModule mod_rewrite.c>
   RewriteEngine on 
   RewriteBase /
-  RewriteCond %{HTTP_HOST} !^www\.
-  RewriteRule ^(.*)$ http://www.%{HTTP_HOST}/$1 [R=301,L] 
 
+  RewriteCond %{QUERY_STRING} ^_escaped_fragment_=(.*)$
+  RewriteRule ^(.*)$ http://www.%{HTTP_HOST}%1? [L,R=301]
+
+  #if trailing / remove it with a permanent redirect
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+  #if missing www. add it with a permanent redirect
+  RewriteCond %{HTTP_HOST} !^www\.
+  RewriteRule ^(.*)$ http://www.%{HTTP_HOST}/$1 [L,R=301] 
+
+  #requests for index.php never rewritten
   RewriteRule ^index\.php$ - [L]
 
+  #if file or directory are missing, route to index.php
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.php [L]
+
 </IfModule>
 
 
